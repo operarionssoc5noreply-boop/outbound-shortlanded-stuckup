@@ -19,3 +19,8 @@ credentials*.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Docker local overrides and runtime artifacts
+docker-compose.override.yml
+.docker/
+*.tar
