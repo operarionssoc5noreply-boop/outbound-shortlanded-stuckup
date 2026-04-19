@@ -91,7 +91,7 @@ app.post("/summary/send", async (req, res) => {
   }
 });
 
-app.listen(config.port, () => {
-  console.log(`Seatalk sync bot listening on port ${config.port}`);
+app.listen(config.port, config.host, () => {
+  console.log(`Seatalk sync bot listening on ${config.host}:${config.port}`);
   summaryWatcher.start();
 });

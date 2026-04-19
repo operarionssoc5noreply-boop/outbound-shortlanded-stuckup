@@ -39,6 +39,7 @@ npm install
 - `SOURCE_SPREADSHEET_ID`
 - `DESTINATION_SPREADSHEET_ID`
 - `DESTINATION_SHEET_NAME`
+- `HOST=0.0.0.0` for container platforms such as Render
 - `SUMMARY_ENABLED=true` if you want the 10-second summary watcher enabled
 - `SUMMARY_SEATALK_WEBHOOK_URL`: SeaTalk system account webhook URL for the target group
 
