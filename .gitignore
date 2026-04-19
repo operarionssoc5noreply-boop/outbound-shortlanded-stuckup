@@ -1,0 +1,21 @@
+node_modules/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+*.local
+
+# Secret-bearing key material
+service-account.json
+service-account.*.json
+credentials*.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
