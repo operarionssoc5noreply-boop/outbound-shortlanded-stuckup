@@ -1,12 +1,38 @@
-const SOURCE_SPREADSHEET_ID = '1f0BuJ_x5Lm3eOnZ1MMvT90eYZDa5_eAL18ANtN9_5Og';
+const SOURCE_SPREADSHEET_ID = 'replace-with-source-spreadsheet-id';
 const SOURCE_SHEET_NAME = 'ConsoFile';
 const WATCH_CELL = 'A1';
 
-const WEBHOOK_URL = 'https://your-public-server.example.com/webhook/sync';
-const WEBHOOK_SECRET = 'replace-with-the-same-secret-from-your-node-server';
+function getWebhookConfig() {
+  const properties = PropertiesService.getScriptProperties();
+  const webhookUrl = properties.getProperty('WEBHOOK_URL');
+  const webhookSecret = properties.getProperty('WEBHOOK_SECRET');
+
+  if (!webhookUrl || !webhookSecret) {
+    throw new Error(
+      'Missing WEBHOOK_URL or WEBHOOK_SECRET in Script Properties. Run setWebhookConfig(webhookUrl, webhookSecret) first.',
+    );
+  }
+
+  return {
+    webhookUrl: webhookUrl,
+    webhookSecret: webhookSecret,
+  };
+}
+
+function setWebhookConfig(webhookUrl, webhookSecret) {
+  if (!webhookUrl || !webhookSecret) {
+    throw new Error('Both webhookUrl and webhookSecret are required.');
+  }
+
+  PropertiesService.getScriptProperties().setProperties({
+    WEBHOOK_URL: String(webhookUrl),
+    WEBHOOK_SECRET: String(webhookSecret),
+  });
+}
 
 function pollSourceA1() {
   const properties = PropertiesService.getScriptProperties();
+  const webhookConfig = getWebhookConfig();
   const sourceSpreadsheet = SpreadsheetApp.openById(SOURCE_SPREADSHEET_ID);
   const sourceSheet = sourceSpreadsheet.getSheetByName(SOURCE_SHEET_NAME);
 
@@ -30,12 +56,12 @@ function pollSourceA1() {
     changedAt: new Date().toISOString(),
   };
 
-  const response = UrlFetchApp.fetch(WEBHOOK_URL, {
+  const response = UrlFetchApp.fetch(webhookConfig.webhookUrl, {
     method: 'post',
     contentType: 'application/json',
     muteHttpExceptions: true,
     headers: {
-      'x-webhook-secret': WEBHOOK_SECRET,
+      'x-webhook-secret': webhookConfig.webhookSecret,
     },
     payload: JSON.stringify(payload),
   });
@@ -61,12 +87,14 @@ function seedLastKnownValue() {
 }
 
 function manualSync() {
-  const response = UrlFetchApp.fetch(WEBHOOK_URL, {
+  const webhookConfig = getWebhookConfig();
+
+  const response = UrlFetchApp.fetch(webhookConfig.webhookUrl, {
     method: 'post',
     contentType: 'application/json',
     muteHttpExceptions: true,
     headers: {
-      'x-webhook-secret': WEBHOOK_SECRET,
+      'x-webhook-secret': webhookConfig.webhookSecret,
     },
     payload: JSON.stringify({
       sourceSpreadsheetId: SOURCE_SPREADSHEET_ID,
