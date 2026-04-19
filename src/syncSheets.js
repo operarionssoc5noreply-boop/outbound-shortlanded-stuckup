@@ -1,5 +1,5 @@
-const { google } = require("googleapis");
 const { config } = require("./config");
+const { createSheetsClient } = require("./googleSheets");
 
 function quoteSheetName(sheetName) {
   return `'${sheetName.replace(/'/g, "''")}'`;
@@ -11,18 +11,6 @@ function buildRange(sheetName, range) {
 
 function buildStartCellRange(sheetName, startCell) {
   return `${quoteSheetName(sheetName)}!${startCell}`;
-}
-
-function createSheetsClient() {
-  const auth = new google.auth.GoogleAuth({
-    credentials: config.googleCredentials,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-
-  return google.sheets({
-    version: "v4",
-    auth,
-  });
 }
 
 async function syncSheets(triggerPayload = {}) {

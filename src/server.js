@@ -2,6 +2,7 @@ const crypto = require("node:crypto");
 const express = require("express");
 const { config } = require("./config");
 const { syncSheets } = require("./syncSheets");
+const { createSummaryWatcher } = require("./summaryWatcher");
 
 function secretsMatch(receivedSecret) {
   if (!receivedSecret) {
@@ -19,6 +20,7 @@ function secretsMatch(receivedSecret) {
 }
 
 const app = express();
+const summaryWatcher = createSummaryWatcher();
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/health", (_req, res) => {
@@ -26,6 +28,7 @@ app.get("/health", (_req, res) => {
     ok: true,
     sourceSpreadsheetId: config.sourceSpreadsheetId,
     destinationSpreadsheetId: config.destinationSpreadsheetId,
+    summary: summaryWatcher.getStatus(),
   });
 });
 
@@ -69,6 +72,26 @@ app.post("/sync", async (req, res) => {
   }
 });
 
+app.post("/summary/send", async (req, res) => {
+  const authHeader = req.header("x-webhook-secret");
+
+  if (!secretsMatch(authHeader)) {
+    return res.status(401).json({ ok: false, error: "Unauthorized summary request." });
+  }
+
+  try {
+    const result = await summaryWatcher.runOnce({ force: true });
+    return res.status(200).json({ ok: true, result });
+  } catch (error) {
+    console.error("Summary send failed:", error);
+    return res.status(500).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
 app.listen(config.port, () => {
   console.log(`Seatalk sync bot listening on port ${config.port}`);
+  summaryWatcher.start();
 });
